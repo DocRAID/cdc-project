@@ -1,4 +1,0 @@
-Cannot generate into /home/limdongju/바탕화면/Poco_Test
-It was created with incompatible generator 'Unix Makefiles'
-
-Please either delete it manually or select another generation directory

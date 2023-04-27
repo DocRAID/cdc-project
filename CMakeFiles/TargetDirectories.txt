@@ -1,3 +1,0 @@
-/home/limdongju/바탕화면/Poco_Test/CMakeFiles/poco_test.dir
-/home/limdongju/바탕화면/Poco_Test/CMakeFiles/edit_cache.dir
-/home/limdongju/바탕화면/Poco_Test/CMakeFiles/rebuild_cache.dir
