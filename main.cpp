@@ -1,49 +1,56 @@
-#include <Poco/JSON/JSON.h>
-#include <Poco/JSON/Parser.h>
-#include <Poco/Dynamic/Var.h>
-#include <Poco/Dynamic/Struct.h>
-#include <set>
 #include <iostream>
-#include<vector>
-#include<fstream>
+#include <memory>
+// #include <stdexcept>
+#include <string>
+#include <array>
+#include <queue>
+#include <thread>
+#include <mutex>
+#include <queue>
+std::queue<std::string> log_queue;
+// static std::mutex log_mutex;
 
-std::vector<std::string>file_read_on(std::string path);
-std::vector<std::string>lsn_parser(std::vector<std::string> json);
+void pg_logical_init();
+void exec_queue(const char* commend);
+
 int main() {
-    std::vector<std::string> json = file_read_on("/home/postgres/test.json");
-    for(auto i:json) {
-        std::cout<<i<<std::endl;
-    }
-    for(auto i:lsn_parser(json)){
-        std::cout<<i<<std::endl;
-    }
-    std::cout<<"exit"<<std::endl;
-}
-
-std::vector<std::string>lsn_parser(std::vector<std::string> json){
-    std::vector<std::string> result;
-    Poco::JSON::Parser loParser;
-    for(auto i:json) {
-        Poco::Dynamic::Var parse = loParser.parse(i);
-        Poco::JSON::Object::Ptr pObject = parse.extract<Poco::JSON::Object::Ptr>();
-        result.push_back(pObject->getValue<std::string>("lsn"));
-        // pObject->getValue<std::string>("lsn");
-    }
-    return result;
-}
-
-std::vector<std::string> file_read_on(std::string path){
-    std::vector<std::string> result;
-    std::ifstream openFile(path.data());
-    if(openFile.is_open()){
-        std::string line;
-        while(getline(openFile,line)){
-            result.push_back(line);
-            // std::cout<<line<<std::endl;
+    char log_commend[256] ="pg_recvlogical -d postgres --slot test_slot --start -o format-version=2 -o include-lsn=true -o add-msg-prefixes=wal2json --file -";
+    pg_logical_init();
+    std::thread get_log(exec_queue,log_commend);
+    // exec_queue("pg_recvlogical -d postgres --slot test_slot --start -o format-version=2 -o include-lsn=true -o add-msg-prefixes=wal2json --file -");
+    while (1) {
+        if(!log_queue.empty()){
+            std::cout<<"read queue!:"<<log_queue.front();
+            log_queue.pop();
         }
-        openFile.close();
-    } else {
-        std::cout<<"error"<<std::endl;
+
     }
-    return result;
+    get_log.join();
+}
+
+void pg_logical_init(){
+    system("pg_recvlogical -d postgres --drop-slot --slot test_slot");
+    system("pg_recvlogical -d postgres --slot test_slot --create-slot -P wal2json");
+}
+
+void exec_queue(const char* commend) {
+    const int buffer_size=256;
+    std::array<char, buffer_size> buffer;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(commend, "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+
+        // std::cout<<buffer.data();
+            std::cout<<"log: push to queue!"<<std::endl;
+            log_queue.push(buffer.data());
+        // if(log_mutex.try_lock()){
+        //     log_mutex.unlock();
+        // } else {
+        //     //throww error
+        //     throw std::runtime_error("mutex: try_lock failed!");
+        // }
+    }
+
 }
