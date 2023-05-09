@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.19)
-project(poco_test)
+project(cdc_run)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(poco_test main.cpp)
+add_executable(cdc_run function.cpp main.cpp)
 
-target_link_libraries(poco_test PocoFoundation PocoNet PocoJSON)
+target_link_libraries(cdc_run PocoFoundation PocoNet PocoJSON)
