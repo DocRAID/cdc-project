@@ -1,8 +1,7 @@
 #include<string>
 #include<map>
-void pg_logical_init();
-std::string lsn_parser(std::string);
-
+void pg_logical_init(std::string db_user);
+std::string log_parser(std::string,std::string);
 class ConfigParser {
     public:
     ConfigParser(const std::string &path);
