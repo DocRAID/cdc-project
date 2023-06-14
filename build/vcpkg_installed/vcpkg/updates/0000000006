@@ -1,8 +1,0 @@
-Package: librdkafka
-Version: 2.1.1
-Depends: lz4, vcpkg-cmake, vcpkg-cmake-config
-Architecture: x64-linux
-Multi-Arch: same
-Abi: e0f43463ea699af9bd1ac7840610edd38f5d058e64adbdfbcf2814bac90fb792
-Description: The Apache Kafka C/C++ library
-Status: install ok half-installed

@@ -1,9 +1,0 @@
-Package: pcre2
-Version: 10.42
-Depends: bzip2, vcpkg-cmake, vcpkg-cmake-config, zlib
-Architecture: x64-linux
-Multi-Arch: same
-Abi: 6d56a4da675509ce6e3f99387b679dafccaf42c691af09770fa0ae219e83fb13
-Description: Regular Expression pattern matching using the same syntax and semantics as Perl 5.
-Default-Features: platform-default-features
-Status: install ok half-installed
