@@ -40,7 +40,7 @@ int main(int argc,char* argv[]) {
             } else {
                 std::cout<<log_parser(log_queue.front(),"action")<<std::endl;
             }
-            //std::cout<<log_parser(log_queue.front(),"action") <<' '<< log_parser(log_queue.front(),"lsn")<<std::endl;
+            // std::cout<<log_queue.front();
             // sleep(1);
             log_queue.pop();
         }
