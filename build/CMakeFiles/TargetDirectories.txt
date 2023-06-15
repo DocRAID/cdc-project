@@ -1,0 +1,3 @@
+/home/limdongju/codes/cdc-project/build/CMakeFiles/cdc_run.dir
+/home/limdongju/codes/cdc-project/build/CMakeFiles/edit_cache.dir
+/home/limdongju/codes/cdc-project/build/CMakeFiles/rebuild_cache.dir

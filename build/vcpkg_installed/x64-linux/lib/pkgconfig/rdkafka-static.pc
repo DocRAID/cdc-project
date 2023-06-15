@@ -1,0 +1,12 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: librdkafka-static
+Description: The Apache Kafka C/C++ library (static)
+Version: 2.1.1
+
+Libs: "-L${libdir}" ${libdir}/librdkafka.a -lpthread -lrt -ldl -lm
+Requires: 
+Cflags: "-I${includedir}" -DLIBRDKAFKA_STATICLIB

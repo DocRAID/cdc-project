@@ -1,14 +1,13 @@
 Detecting compiler hash for triplet x64-linux...
-error: while detecting compiler information:
-The log file content at "/home/limdongju/문서/vcpkg/buildtrees/detect_compiler/stdout-x64-linux.log" is:
--- Configuring x64-linux-rel
-CMake Error at scripts/cmake/vcpkg_execute_required_process.cmake:93 (configure_file):
-  Operation not permitted
-Call Stack (most recent call first):
-  scripts/cmake/vcpkg_configure_cmake.cmake:344 (vcpkg_execute_required_process)
-  scripts/detect_compiler/portfile.cmake:18 (vcpkg_configure_cmake)
-  scripts/ports.cmake:147 (include)
+All requested packages are currently installed.
+Total install time: 571 ns
+The package librdkafka:x64-linux provides CMake targets:
 
+    find_package(RdKafka CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE RdKafka::rdkafka RdKafka::rdkafka++)
 
+The package poco is compatible with built-in CMake targets:
 
-error: vcpkg was unable to detect the active compiler's information. See above for the CMake failure output.
+    find_package(Poco REQUIRED [COMPONENTS <libs>...])
+    target_link_libraries(main PRIVATE Poco::<libs>)
+
