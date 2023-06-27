@@ -22,7 +22,6 @@ static void stop(int sig) {
 
 std::queue<std::string> log_queue;
 std::queue<std::string> kafka_msg_queue;
-// static std::mutex log_mutex;
 
 void exec_queue_th(const char* commend);
 void kafka_proc_th(const char* broker,const char* topic);
@@ -46,13 +45,24 @@ int main(int argc,char* argv[]) {
     }
     ConfigParser config_info(argv[1]);
 
+    config_info.ConfigTest();
     //todo : pg_logical init 안전한 방법 찾기, signal 처리 하기. configfile유효성 검사 하기!!!
-    pg_logical_init(config_info.GetValue("targitDbUser"));
+    pg_logical_init(config_info.GetValue("source-db-user"));
     char log_commend[256] ="pg_recvlogical -d postgres --slot test_slot --start -o format-version=2 -o include-lsn=true -o add-msg-prefixes=wal2json --file -";
     // 로그를 가져오는 스레드 생성
     std::thread exec_queue(exec_queue_th,log_commend);
     // kafka에 적용시키는 스레드 생성
-    std::thread kafka_proc(kafka_proc_th,"15.165.255.57:8080","test");
+    //broker make
+    char* broker_ip=new char[std::strlen(config_info.GetValue("kafka-ip").c_str())];
+    std::strcpy(broker_ip,config_info.GetValue("kafka-ip").c_str());
+    char* broker_port = new char[std::strlen(config_info.GetValue("kafka-port").c_str())];
+    std::strcpy(broker_port,config_info.GetValue("kafka-port").c_str());
+    char* broker = new char[std::strlen(broker_ip)+std::strlen(broker_port)+1];
+    std::strcpy(broker,broker_ip);
+    std::strcat(broker,":");
+    std::strcat(broker,broker_port);
+    //broker
+    std::thread kafka_proc(kafka_proc_th,broker,"test");
     // exec_queue("pg_recvlogical -d postgres --slot test_slot --start -o format-version=2 -o include-lsn=true -o add-msg-prefixes=wal2json --file -");
     signal(SIGINT, stop);
     while (run) {
@@ -93,14 +103,7 @@ void exec_queue_th(const char* commend) {
         throw std::runtime_error("popen() failed!");
     }
     while (run && fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        // std::cout<<buffer.data();
-        // if(log_mutex.try_lock()){
         log_queue.push(buffer.data());
-        //     log_mutex.unlock();
-        // } else {
-        //     //throww error
-        //     throw std::runtime_error("mutex: try_lock failed!");
-        // }
     }
 
 }

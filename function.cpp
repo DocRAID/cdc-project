@@ -56,3 +56,9 @@ bool ConfigParser::GetBool(const std::string& name) {
         return false;
     }
 }
+void ConfigParser::ConfigTest(){
+    std::cout<<"info: print config information."<<std::endl;
+    for(auto i : conf_table){
+        std::cout<<i.first<<" : "<<i.second<<std::endl;
+    }
+}

@@ -7,6 +7,8 @@ class ConfigParser {
     ConfigParser(const std::string &path);
     std::string GetValue(const std::string& name);
     bool GetBool(const std::string& name);
-    private:
+    void ConfigTest();
+
+private:
     std::map<std::string, std::string> conf_table;
 };
