@@ -1,8 +1,9 @@
 #include <map>
 #include <string>
-void pg_logical_init(std::string db_user);
+std::string pg_logical_init(std::string db_user);
 char *broker_cat(std::string ip, std::string port);
 std::string log_parser(std::string, std::string);
+void logger_writer(int id,std::string message,std::string path);
 class ConfigParser
 {
 public:

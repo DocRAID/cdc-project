@@ -17,6 +17,7 @@ static volatile sig_atomic_t run = 1;
 
 static void stop(int sig)
 {
+    
     run = 0;
     fclose(stdin);
 }
@@ -43,8 +44,6 @@ static void dr_msg_cb(rd_kafka_t *rk, const rd_kafka_message_t *rkmessage, void 
 
 int main(int argc, char *argv[])
 {
-    char *brokers;
-    char *topic;
     if (argc != 2)
     {
         fprintf(stderr, "%% Usage: %s <config-ini>\n", argv[0]);
@@ -53,16 +52,20 @@ int main(int argc, char *argv[])
     ConfigParser config_info(argv[1]);
     config_info.ConfigTest();
 
-    pg_logical_init(config_info.GetValue("source-db-user"));
-    char log_commend[256] = "pg_recvlogical -d postgres --slot test_slot --start -o format-version=2 -o include-lsn=true -o add-msg-prefixes=wal2json --file -";
-    // broker make
+    char log_commend[256];
+    std::strcpy(log_commend,pg_logical_init(config_info.GetValue("source-db-user")).c_str());
+    
+    // prepare broker and topic
     char *broker = broker_cat(config_info.GetValue("kafka-ip"), config_info.GetValue("kafka-port"));
+    char *topic = new char[std::strlen(config_info.GetValue("kafka-topic").c_str())];
+    std::strcpy(topic,config_info.GetValue("kafka-topic").c_str());
     // 로그를 가져오는 스레드 생성
     std::thread exec_queue(exec_queue_th, log_commend);
     // kafka에 적용시키는 스레드 생성
-    std::thread kafka_proc(kafka_proc_th, broker, "test");
+    std::thread kafka_proc(kafka_proc_th, broker, topic);
     // exec_queue("pg_recvlogical -d postgres --slot test_slot --start -o format-version=2 -o include-lsn=true -o add-msg-prefixes=wal2json --file -");
     signal(SIGINT, stop);
+    logger_writer(0,"server start",config_info.GetValue("export-log-path"));
     while (run)
     {
         if (!log_queue.empty())
@@ -81,22 +84,37 @@ int main(int argc, char *argv[])
                 kafka_msg_queue.push("insert: " + log_parser(log_queue.front(), "columns"));
                 // lsn 기록 log_parser(log_queue.front(),"lsn")
             }
+            else if (action.compare("D") == 0)
+            {
+                // delete
+                //  std::cout<<log_parser(log_queue.front(),"columns")<<std::endl;
+                kafka_msg_queue.push("delete: " + log_parser(log_queue.front(), "columns"));
+                // lsn 기록 log_parser(log_queue.front(),"lsn")
+            }
+            else if (action.compare("U") == 0)
+            {
+                // update
+                //  std::cout<<log_parser(log_queue.front(),"columns")<<std::endl;
+                kafka_msg_queue.push("update: " + log_parser(log_queue.front(), "columns"));
+                // lsn 기록 log_parser(log_queue.front(),"lsn")
+            }
             else if (action.compare("T") == 0)
             {
                 // truncate
-                kafka_msg_queue.push("delete: " + log_parser(log_queue.front(), "columns"));
+                kafka_msg_queue.push("tuncat: " + log_parser(log_queue.front(), "columns"));
             }
             else
             {
-                // std::cout<<log_parser(log_queue.front(),"action")<<std::endl;
-                // std::cout<<log_queue.front()<<std::endl;
+                kafka_msg_queue.push("warning: unknown option");
             }
             std::cout << log_queue.front() << std::endl;
             log_queue.pop();
         }
     }
+    logger_writer(1,"server down",config_info.GetValue("export-log-path"));
     exec_queue.join();
     kafka_proc.join();
+    //log:shutdown
     // 프로그램이 종료될때 slot삭제하고, 로그 남기고 종료.
 }
 
@@ -121,7 +139,7 @@ void kafka_proc_th(const char *broker, const char *topic)
     rd_kafka_t *rk;
     rd_kafka_conf_t *conf;
     char errstr[512];
-    char buf[512];
+    char buf[1024];
 
     conf = rd_kafka_conf_new();
 
@@ -162,16 +180,11 @@ void kafka_proc_th(const char *broker, const char *topic)
 
         retry:
             err = rd_kafka_producev(
-                /* Producer handle */
                 rk,
-                /* Topic name */
                 RD_KAFKA_V_TOPIC(topic),
-                /* Make a copy of the payload. */
                 RD_KAFKA_V_MSGFLAGS(RD_KAFKA_MSG_F_COPY),
-                /* Message value and length */
                 RD_KAFKA_V_VALUE(buf, len),
                 RD_KAFKA_V_OPAQUE(NULL),
-                /* End sentinel */
                 RD_KAFKA_V_END);
 
             if (err)

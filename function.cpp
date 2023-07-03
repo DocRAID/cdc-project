@@ -1,11 +1,13 @@
 #include "function.h"
 #include <iostream>
 #include <fstream>
+#include <ctime>
 #include <Poco/JSON/JSON.h>
 #include <Poco/JSON/Parser.h>
 #include <Poco/Dynamic/Var.h>
 #include <Poco/Dynamic/Struct.h>
 #include <map>
+#include <fstream>
 
 std::string log_parser(std::string json, std::string key)
 {
@@ -27,11 +29,42 @@ char *broker_cat(std::string ip, std::string port)
     std::strcat(broker, broker_port);
     return broker;
 }
-void pg_logical_init(std::string db_user)
+void logger_writer(int id,std::string message,std::string path){
+    // -1:error, 0:start log, 1:down log, 2:warning log, 3:system log,
+    std::ofstream file;
+    std::string content;
+    time_t bf_time;
+    time(&bf_time);
+    std::string now_time = asctime(localtime(&bf_time));
+    
+    content= now_time.substr(0,now_time.length()-1)+" ";
+    if(id==-1){
+        content += "[Err]: ";
+    } else if (id==0){
+        content += "[Start]: ";
+    } else if(id==1){
+        content += "[Down]: ";
+    } else if(id==2){
+        content += "[Warning]: ";
+    } else if(id==3){
+        content += "[Syslog]: ";
+    } else {
+        content += "[Unknown]: ";
+    }
+    content+=message+'\n';
+    file.open(path+"/log.txt", std::ios_base::app);
+    file<<content;
+    file.close();
+    return;
+}
+std::string pg_logical_init(std::string db_user)
 {
     // system 안에 db_user 적용
     system("pg_recvlogical -d postgres --drop-slot --slot test_slot");
     system("pg_recvlogical -d postgres --slot test_slot --create-slot -P wal2json");
+    std::string output = "pg_recvlogical -d postgres --slot test_slot --start -o format-version=2 -o include-lsn=true -o include-timestamp=true -o add-msg-prefixes=wal2json --file -";
+    
+    return output;
 }
 ConfigParser::ConfigParser(const std::string &path)
 {
