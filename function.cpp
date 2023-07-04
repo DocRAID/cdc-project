@@ -7,7 +7,7 @@
 #include <Poco/Dynamic/Var.h>
 #include <Poco/Dynamic/Struct.h>
 #include <map>
-#include <fstream>
+#include <filesystem>
 
 std::string log_parser(std::string json, std::string key)
 {
@@ -69,7 +69,9 @@ std::string pg_logical_init(std::string db_user)
 ConfigParser::ConfigParser(const std::string &path)
 {
     // if not file exist ? throw error
+
     std::ifstream openFile(path);
+    
     if (openFile.is_open())
     {
         std::string line;

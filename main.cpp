@@ -44,14 +44,17 @@ static void dr_msg_cb(rd_kafka_t *rk, const rd_kafka_message_t *rkmessage, void 
 
 int main(int argc, char *argv[])
 {
+    std::string config_path;
     if (argc != 2)
     {
         fprintf(stderr, "%% Usage: %s <config-ini>\n", argv[0]);
-        return 1;
+        config_path = "./config.ini";
+    } else{
+        config_path=argv[1];
     }
-    ConfigParser config_info(argv[1]);
+    
+    ConfigParser config_info(config_path);
     config_info.ConfigTest();
-
     char log_commend[256];
     std::strcpy(log_commend,pg_logical_init(config_info.GetValue("source-db-user")).c_str());
     
@@ -105,7 +108,8 @@ int main(int argc, char *argv[])
             }
             else
             {
-                kafka_msg_queue.push("warning: unknown option");
+                kafka_msg_queue.push("warning: unknown option, check log file.");
+                logger_writer(4,log_parser(log_queue.front(), "columns"),config_info.GetValue("export-log-path"));
             }
             std::cout << log_queue.front() << std::endl;
             log_queue.pop();
