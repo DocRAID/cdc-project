@@ -37,19 +37,19 @@ void logger_writer(int id,std::string message,std::string path){
     time(&bf_time);
     std::string now_time = asctime(localtime(&bf_time));
     
-    content= now_time.substr(0,now_time.length()-1)+" ";
+    content= now_time.substr(0,now_time.length()-1)+", ";
     if(id==-1){
-        content += "[Err]: ";
+        content += "[Err], ";
     } else if (id==0){
-        content += "[Start]: ";
+        content += "[Start], ";
     } else if(id==1){
-        content += "[Down]: ";
+        content += "[Down], ";
     } else if(id==2){
-        content += "[Warning]: ";
+        content += "[Warning], ";
     } else if(id==3){
-        content += "[Syslog]: ";
+        content += "[Syslog], ";
     } else {
-        content += "[Unknown]: ";
+        content += "[Unknown], ";
     }
     content+=message+'\n';
     file.open(path+"/log.txt", std::ios_base::app);
@@ -60,9 +60,9 @@ void logger_writer(int id,std::string message,std::string path){
 std::string pg_logical_init(std::string db_user)
 {
     // system 안에 db_user 적용
-    system("pg_recvlogical -d postgres --drop-slot --slot test_slot");
-    system("pg_recvlogical -d postgres --slot test_slot --create-slot -P wal2json");
-    std::string output = "pg_recvlogical -d postgres --slot test_slot --start -o format-version=2 -o include-lsn=true -o include-timestamp=true -o add-msg-prefixes=wal2json --file -";
+    system("pg_recvlogical -d ubuntu --drop-slot --slot test_slot");
+    system("pg_recvlogical -d ubuntu --slot test_slot --create-slot -P wal2json");
+    std::string output = "pg_recvlogical -d ubuntu --slot test_slot --start -o format-version=2 -o include-lsn=true -o include-timestamp=true -o add-msg-prefixes=wal2json --file -";
     
     return output;
 }
